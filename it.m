@@ -12,8 +12,6 @@ close all;
      disp(['User selected ', selected_file])
  end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 %% Load and process the image
   img_path = selected_file;
   original_image = imread(img_path);
@@ -33,8 +31,6 @@ close all;
   fprintf('Image dimensions: %d x %d\n', rows, cols);
   fprintf('Total pixels: %d\n', rows * cols);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 %% Load and process the image
    img_vector = original_image(:);    % Stack columns into a single column
    
@@ -52,7 +48,6 @@ close all;
 
 % Calculate entropy 
   entropy = sum(info_to_ent(isfinite(info_to_ent))); 
-
 
 % Display information and entropy
   fprintf('%-12s | %-12s | %-16s\n','Gray level(Symbols)','Probability','Information gained');
@@ -229,16 +224,18 @@ efficiency_huffman = 100; % Cap efficiency at 100% if necessary
 end 
 fprintf('Efficiency (Huffman): %.2f%%\n', efficiency_huffman); 
 disp('---------------------------------'); 
-% Compare input and output files 
-if strcmp(img_vector, decoded) 
-disp('No Lost Data (Huffman)'); 
-else 
-disp('Some data is lost (Huffman)'); 
-end 
-if strcmp(img_vector, decoded_shannon) 
-disp('No Lost Data (Shannon)'); 
-else 
-disp('Some data is lost (Shannon)'); 
-end
+
+%% Compare between the input and output images 
+  if isequal(original_image, huffman_img) 
+    disp('No Lost Data (Huffman)'); 
+  else 
+    disp('Some data is lost (Huffman)'); 
+  end
+
+  if isequal(original_image, shannon_img) 
+    disp('No Lost Data (Shannon)'); 
+  else 
+    disp('Some data is lost (Shannon)'); 
+  end
 
   
