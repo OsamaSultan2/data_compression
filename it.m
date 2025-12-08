@@ -88,7 +88,7 @@ codeword{code_1} = [codeword{code_0}, '1'];
 codeword{code_0} = [codeword{code_0}, '0']; 
 end 
 % Display Huffman dictionary with ASCII code 
-disp('---------------------------------'); 
+fprintf('---------------------------------------------------------------\n'); 
 disp('Huffman Coding: Symbol | Codeword'); 
 for i = 1:length(symbols) 
 fprintf('%d | %s\n', symbols(i), codeword{i}); 
@@ -191,39 +191,36 @@ end
 disp('---------------------------------'); 
 disp('Decoded Data (Decoded Message - Shannon):'); 
 %disp(decoded_shannon); 
-% Calculate the average code length for Shannon 
-average_shannon_length = sum(sorted_probabilities .* codeLengths);
 shannon_img = reshape(uint8(decoded_shannon), size(img));
 
 figure('Name', 'shannon Decoded Image', 'NumberTitle', 'off');
 imshow(shannon_img);
 
 
-%% Display Shannon's code average length and efficiency 
-disp('---------------------------------'); 
-fprintf('Code average length (Shannon): %.4f bits/symbol\n', average_shannon_length); 
+%% Display Shannon's code average length and efficiency
+
+% Calculate the average code length for Shannon 
+  average_shannon_length = sum(sorted_probabilities .* codeLengths);
+  disp('---------------------------------'); 
+  fprintf('Code average length (Shannon): %.4f bits/symbol\n', average_shannon_length); 
 % Calculate Shannon efficiency (should not exceed 100%) 
-efficiency_shannon = (entropy / average_shannon_length) * 100; 
-if efficiency_shannon > 100 
-efficiency_shannon = 100; % Cap efficiency at 100% if necessary 
-end 
-fprintf('Efficiency (Shannon): %.2f%%\n', efficiency_shannon); 
-disp('---------------------------------'); 
+  efficiency_shannon = (entropy / average_shannon_length) * 100; 
+  fprintf('Efficiency (Shannon): %.2f%%\n', efficiency_shannon); 
+  disp('---------------------------------'); 
+
+%% Display Huffman's code average length and efficiency
+
 % Calculate the average code length for Huffman 
-average_huffman_length = 0; 
-for i = 1:length(probabilities) 
-average_huffman_length = average_huffman_length + probabilities(i) * length(codeword{i}); 
-end 
-% Display Huffman's code average length and efficiency 
-disp('---------------------------------'); 
-fprintf('Code average length (Huffman): %.4f bits/symbol\n', average_huffman_length); 
+  average_huffman_length = 0; 
+  for i = 1:length(probabilities) 
+    average_huffman_length = average_huffman_length + probabilities(i) * length(codeword{i}); 
+  end
+  disp('---------------------------------'); 
+  fprintf('Code average length (Huffman): %.4f bits/symbol\n', average_huffman_length); 
 % Calculate Huffman efficiency (should not exceed 100%) 
-efficiency_huffman = (entropy / average_huffman_length) * 100; 
-if efficiency_huffman > 100 
-efficiency_huffman = 100; % Cap efficiency at 100% if necessary 
-end 
-fprintf('Efficiency (Huffman): %.2f%%\n', efficiency_huffman); 
-disp('---------------------------------'); 
+  efficiency_huffman = (entropy / average_huffman_length) * 100; 
+  fprintf('Efficiency (Huffman): %.2f%%\n', efficiency_huffman); 
+  disp('---------------------------------'); 
 
 %% Compare between the input and output images 
   if isequal(original_image, huffman_img) 
