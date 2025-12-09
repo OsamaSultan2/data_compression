@@ -22,7 +22,7 @@ close all;
   end
     
 % Display original image
-  figure('Name', 'Original Image', 'NumberTitle', 'off');
+  figure('Name', 'Original Image', 'NumberTitle', 'on');
   imshow(original_image);
   title('Original Grayscale Image');
 
@@ -32,7 +32,7 @@ close all;
   fprintf('Total pixels: %d\n', rows * cols);
 
 %% Load and process the image
-   img_vector = original_image(:);    % Stack columns into a single column
+  img_vector = original_image(:);    % Stack columns into a single column
    
 % Calculate probabilities of each symbol 
   symbols = unique(img_vector); % Remove repeated symbols 
@@ -113,23 +113,27 @@ disp('---------------------------------');
 disp('Transmitted Binary Code (Encoded Message - Huffman):'); 
 disp(str); 
 % Decode the message using Huffman codes 
-decoded = []; % Initialize decoded data array 
+decoded_Huffman = []; % Initialize decoded data array 
 stream = []; % Initialize temporary stream 
 for i = 1:length(encoded) 
 stream = [stream, encoded(i)]; 
 idx = find(strcmp(stream, codeword)); 
 if ~isempty(idx) 
-decoded = [decoded, symbols(idx)]; 
+decoded_Huffman = [decoded_Huffman, symbols(idx)]; 
 stream = []; 
 end 
 end 
 disp('---------------------------------'); 
 disp('Decoded Data (Decoded Message - Huffman):'); 
-img = uint8(original_image);
-huffman_img = reshape(uint8(decoded), size(img));
+%disp(decoded_Huffman);
 
-figure('Name', 'Huffman Decoded Image', 'NumberTitle', 'off');
-imshow(huffman_img); 
+img = uint8(original_image);
+
+% ======== Display Image ========
+huffman_img = reshape(uint8(decoded_Huffman), size(img));
+figure('Name', 'Huffman Decoded Image', 'NumberTitle', 'on');
+imshow(huffman_img);
+title('Huffman Decoded Grayscale Image');
 
 %% Shannon Coding using alpha method 
 % Sort the symbols and probabilities based on probabilities 
@@ -186,24 +190,36 @@ imshow(huffman_img);
   disp('Transmitted Binary Code (Encoded Message - Shannon):'); 
   disp(str_shannon); 
 
-% Decode the message using Shannon codes 
-  decoded_shannon = []; 
-  stream_shannon = []; 
-  for i = 1:length(encoded_shannon) 
-    stream_shannon = [stream_shannon, encoded_shannon(i)]; 
-    idx_shannon = find(strcmp(stream_shannon, shannon_codeword)); 
-    if ~isempty(idx_shannon) 
-      decoded_shannon = [decoded_shannon, sorted_symbols(idx_shannon)]; 
-      stream_shannon = []; 
-    end 
-  end 
-  disp('---------------------------------'); 
-  disp('Decoded Data (Decoded Message - Shannon):'); 
+% Decode the message using Shannon codes
 
-  shannon_img = reshape(uint8(decoded_shannon), size(img));
+% Build a reverse dictionary (codeword → symbol) using containers.Map
+% This allows very fast decoding by directly mapping each codeword to its symbol.
+revDict = containers.Map();
 
-  figure('Name', 'shannon Decoded Image', 'NumberTitle', 'off');
-  imshow(shannon_img);
+for k = 1:length(sorted_symbols)
+    revDict(shannon_codeword{k}) = sorted_symbols(k);
+end
+
+decoded_shannon = zeros(1, length(img_vector)); % preallocate
+writeIndex = 1;
+
+
+for i = 1:length(encoded_shannon)
+    cw = encoded_shannon(i);      % one codeword is complete already
+    if isKey(revDict, cw)
+      symbol = revDict(cw);       % Direct lookup
+    else
+      error('Unknown codeword encountered: %s', cw);
+    end         
+    decoded_shannon(writeIndex) = symbol;
+    writeIndex = writeIndex + 1;
+end
+
+% ======== Display Image ========
+shannon_img = reshape(uint8(decoded_shannon), size(img));
+figure('Name', 'shannon Decoded Image', 'NumberTitle', 'on');
+imshow(shannon_img);
+title('Shannon Decoded Grayscale Image');
 
 %% Display Shannon's code average length and efficiency
 
