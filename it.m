@@ -65,14 +65,15 @@ close all;
 % As we deal with bits so no need for dummy symbols : k = ceil(q-r/r-1) >>>
 % k = ceil(q-2/2-1) = ceil(q-2/1) = q-2 >>>> so there is no fraction
 
-codeword_length = length(probabilities); 
-codeword = cell(1, codeword_length); % Empty cell array for Huffman codewords 
-x = zeros(codeword_length, codeword_length); % Matrix for Huffman algorithm 
+num_of_symbols = length(symbols); 
+codeword = cell(1, num_of_symbols); % Empty cell array for Huffman codewords 
+x = zeros(num_of_symbols, num_of_symbols); % Matrix for Huffman algorithm
+
 % Temporary probability array to keep original values intact 
 temp_p = probabilities; 
 
 % Huffman algorithm 
-for a = 1:codeword_length-1 
+for a = 1:num_of_symbols-1 
 [~, idx] = sort(temp_p); % Sort probabilities 
 % Combine the smallest two probabilities 
 temp_p(idx(2)) = temp_p(idx(1)) + temp_p(idx(2));  
@@ -80,13 +81,15 @@ x(idx(1), a) = 11; % Assign value to the first smallest p
 x(idx(2), a) = 10; % Assign value to the second smallest p 
 temp_p(idx(1)) = nan; % Mark the combined node 
 end 
+
 % Generate Huffman codewords based on the matrix 
-for a = codeword_length-1:-1:1 
-code_1 = find(x(:, a) == 11); 
-code_0 = find(x(:, a) == 10); 
+for a = num_of_symbols-1:-1:1 
+code_1 = find(x(:, a) == 11); %return index of 11
+code_0 = find(x(:, a) == 10); %return index of 10
 codeword{code_1} = [codeword{code_0}, '1']; 
 codeword{code_0} = [codeword{code_0}, '0']; 
 end 
+
 % Display Huffman dictionary with ASCII code 
 fprintf('---------------------------------------------------------------\n'); 
 disp('Huffman Coding: Symbol | Codeword'); 
@@ -130,72 +133,77 @@ imshow(huffman_img);
 
 %% Shannon Coding using alpha method 
 % Sort the symbols and probabilities based on probabilities 
-[sorted_probabilities, idx] = sort(probabilities, 'descend'); 
-sorted_symbols = symbols(idx); 
+  [sorted_probabilities, idx] = sort(probabilities, 'descend'); 
+  sorted_symbols = symbols(idx); % Rearranges the symbols to match their sorted probabilities.
+
 % Calculate alpha values 
-alpha = zeros(1, length(sorted_probabilities)); 
-alpha(1) = 0; % First alpha value is 0 
-for j = 2:length(sorted_probabilities) 
-alpha(j) = alpha(j-1) + sorted_probabilities(j-1); 
-end 
+  alpha = zeros(1, length(sorted_probabilities)); 
+  alpha(1) = 0; % First alpha value is 0 
+  for j = 2:length(sorted_probabilities) 
+    alpha(j) = alpha(j-1) + sorted_probabilities(j-1); 
+  end 
+
 % Calculate code lengths 
-codeLengths = ceil(-log2(sorted_probabilities)); 
+  codeLengths = ceil(-log2(sorted_probabilities));
+
 % Compute Shannon codes for each symbol 
-shannon_codeword = cell(1, length(sorted_symbols)); 
-for i = 1:length(sorted_symbols) 
-int = alpha(i); 
-code = []; 
-for j = 1:codeLengths(i) 
-frac = int * 2; 
-c = floor(frac); 
-frac = frac - c; 
-code = [code c]; 
-int = frac; 
-end 
-shannon_codeword{i} = num2str(code); % Convert code array to string 
-end 
+  shannon_codeword = cell(1, length(sorted_symbols)); 
+  for i = 1:length(sorted_symbols) 
+    int = alpha(i); 
+    code = []; 
+    for j = 1:codeLengths(i) 
+      frac = int * 2; 
+      c = floor(frac); 
+      frac = frac - c; 
+      code = [code c]; 
+      int = frac; 
+    end 
+  shannon_codeword{i} = num2str(code); % Convert code array to string 
+  end 
+
 % Display Shannon dictionary with alpha values 
-disp('----------------------------------------------'); 
-disp('Shannon Coding');
-fprintf('%-8s | %-12s | %-16s\n','Symbols','Alpha','Codeword');
-for i = 1:length(sorted_symbols) 
-fprintf('%-8d | %.10f | %s\n', sorted_symbols(i), alpha(i), shannon_codeword{i}); 
-end 
+  disp('----------------------------------------------'); 
+  disp('Shannon Coding');
+  fprintf('%-8s | %-12s | %-16s\n','Symbols','Alpha','Codeword');
+  for i = 1:length(sorted_symbols) 
+    fprintf('%-8d | %.10f | %s\n', sorted_symbols(i), alpha(i), shannon_codeword{i}); 
+  end 
 
 % Encode the data using Shannon codes 
-encoded_shannon = strings(1, length(img_vector)); 
-for i = 1:length(img_vector) 
-for j = 1:length(sorted_symbols) 
-if img_vector(i) == sorted_symbols(j) 
-encoded_shannon(i) = shannon_codeword{j}; 
-end 
-end 
-end 
+  encoded_shannon = strings(1, length(img_vector)); 
+  for i = 1:length(img_vector) 
+    for j = 1:length(sorted_symbols) 
+      if img_vector(i) == sorted_symbols(j) 
+        encoded_shannon(i) = shannon_codeword{j}; 
+      end 
+    end 
+  end 
+
 % Transmitted Binary Code (Encoded Message - Shannon) 
-str_shannon = strjoin(encoded_shannon); 
-str_shannon = strrep(str_shannon, ' ', ''); 
-disp('---------------------------------'); 
-disp('Transmitted Binary Code (Encoded Message - Shannon):'); 
-disp(str_shannon); 
+  str_shannon = strjoin(encoded_shannon); 
+  str_shannon = strrep(str_shannon, ' ', ''); 
+  disp('---------------------------------'); 
+  disp('Transmitted Binary Code (Encoded Message - Shannon):'); 
+  disp(str_shannon); 
+
 % Decode the message using Shannon codes 
-decoded_shannon = []; 
-stream_shannon = []; 
-for i = 1:length(encoded_shannon) 
-stream_shannon = [stream_shannon, encoded_shannon(i)]; 
-idx_shannon = find(strcmp(stream_shannon, shannon_codeword)); 
-if ~isempty(idx_shannon) 
-decoded_shannon = [decoded_shannon, sorted_symbols(idx_shannon)]; 
-stream_shannon = []; 
-end 
-end 
-disp('---------------------------------'); 
-disp('Decoded Data (Decoded Message - Shannon):'); 
-%disp(decoded_shannon); 
-shannon_img = reshape(uint8(decoded_shannon), size(img));
+  decoded_shannon = []; 
+  stream_shannon = []; 
+  for i = 1:length(encoded_shannon) 
+    stream_shannon = [stream_shannon, encoded_shannon(i)]; 
+    idx_shannon = find(strcmp(stream_shannon, shannon_codeword)); 
+    if ~isempty(idx_shannon) 
+      decoded_shannon = [decoded_shannon, sorted_symbols(idx_shannon)]; 
+      stream_shannon = []; 
+    end 
+  end 
+  disp('---------------------------------'); 
+  disp('Decoded Data (Decoded Message - Shannon):'); 
 
-figure('Name', 'shannon Decoded Image', 'NumberTitle', 'off');
-imshow(shannon_img);
+  shannon_img = reshape(uint8(decoded_shannon), size(img));
 
+  figure('Name', 'shannon Decoded Image', 'NumberTitle', 'off');
+  imshow(shannon_img);
 
 %% Display Shannon's code average length and efficiency
 
